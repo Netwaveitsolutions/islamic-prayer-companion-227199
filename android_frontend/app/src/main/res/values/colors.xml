@@ -1,11 +1,25 @@
 <resources>
     <!-- Ocean Professional palette -->
     <color name="ocean_primary">#2563EB</color>
+    <color name="ocean_primary_dark">#1D4ED8</color>
+
     <color name="ocean_secondary">#F59E0B</color>
+    <color name="ocean_secondary_dark">#D97706</color>
+
+    <!-- Backgrounds / surfaces -->
     <color name="ocean_background">#F9FAFB</color>
     <color name="ocean_surface">#FFFFFF</color>
-    <color name="ocean_text">#111827</color>
-    <color name="ocean_error">#EF4444</color>
+    <color name="ocean_surface_alt">#F3F4F6</color>
 
+    <!-- Typography -->
+    <color name="ocean_text">#111827</color>
+    <color name="ocean_text_muted">#6B7280</color>
+
+    <!-- System / feedback -->
+    <color name="ocean_error">#EF4444</color>
+    <color name="ocean_success">#16A34A</color>
+
+    <!-- Dividers / outlines -->
     <color name="divider_soft">#E5E7EB</color>
+    <color name="outline_soft">#D1D5DB</color>
 </resources>
