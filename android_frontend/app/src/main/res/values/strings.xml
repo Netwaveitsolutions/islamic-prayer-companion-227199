@@ -30,4 +30,19 @@
 
     <string name="learn_tutorial">Tutorial</string>
     <string name="learn_tatweej">Tatweej</string>
+
+    <string name="retry">Retry</string>
+
+    <string name="prayer_times_loading">Loading prayer times…</string>
+    <string name="prayer_times_refreshing">Refreshing…</string>
+    <string name="prayer_times_updated">Updated</string>
+    <string name="prayer_times_offline_showing_saved">Offline — showing saved times</string>
+    <string name="prayer_times_failed_status">Couldn’t load prayer times.</string>
+    <string name="prayer_times_failed_body">No saved times available. Check your connection and try again.</string>
+
+    <string name="city_picker_search_hint">Search city or country</string>
+    <string name="city_picker_current_selection">Current selection</string>
+    <string name="city_picker_current_selection_value">Current selection: %1$s, %2$s</string>
+    <string name="city_picker_empty">No matches. Try a different spelling.</string>
+    <string name="selected">Selected</string>
 </resources>

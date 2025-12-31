@@ -2,16 +2,29 @@ package org.example.app.data.prayertimes
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AladhanApi {
 
-    @GET("timingsByCity")
+    // PUBLIC_INTERFACE
+    /**
+     * Fetch prayer timings for a specific date and city from Aladhan.
+     *
+     * Aladhan endpoint: /timingsByCity/{date}
+     * - date format: dd-MM-yyyy
+     * - method: calculation method id (e.g., 2 ISNA, 3 MWL)
+     * - school: madhab for Asr (0 Shafi, 1 Hanafi)
+     * - latitudeAdjustmentMethod: high-latitude rule (1 Middle of Night, 2 One Seventh, 3 Angle Based)
+     */
+    @GET("timingsByCity/{date}")
     suspend fun getTimingsByCity(
+        @Path("date") date: String,
         @Query("city") city: String,
         @Query("country") country: String,
         @Query("method") method: Int,
-        @Query("school") school: Int
+        @Query("school") school: Int,
+        @Query("latitudeAdjustmentMethod") latitudeAdjustmentMethod: Int
     ): AladhanTimingsResponse
 }
 

@@ -14,9 +14,17 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class PrayerTimesRepository(private val context: Context) {
+
+    enum class Source { NETWORK, CACHE }
+
+    data class PrayerTimesWithSource(
+        val times: PrayerTimes,
+        val source: Source
+    )
 
     private val gson = Gson()
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
@@ -39,16 +47,45 @@ class PrayerTimesRepository(private val context: Context) {
             .create(AladhanApi::class.java)
     }
 
-    suspend fun getTodayPrayerTimes(city: City, method: Int, school: Int): Result<PrayerTimes> {
+    // PUBLIC_INTERFACE
+    /**
+     * Fetch prayer times for a given date and settings. Uses a cache fallback when offline.
+     *
+     * Caching + invalidation:
+     * - Cache key includes (date, city, method, madhab, high-latitude rule).
+     * - For the same (city+method+madhab+highLat), we keep only the most recent day cached
+     *   and delete the previous day's cached entry when a new day's data is saved.
+     *
+     * @return Result.success(PrayerTimesWithSource) on network or cache success, Result.failure on total failure.
+     */
+    suspend fun getPrayerTimesForDate(
+        date: LocalDate,
+        city: City,
+        method: Int,
+        school: Int,
+        highLatitudeRule: Int
+    ): Result<PrayerTimesWithSource> {
         return withContext(Dispatchers.IO) {
+            val settingsKey = settingsKey(city, method, school, highLatitudeRule)
+            val key = cacheKey(settingsKey, date)
+
             try {
-                val response = api.getTimingsByCity(city = city.name, country = city.country, method = method, school = school)
+                val dateStr = date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+                val response = api.getTimingsByCity(
+                    date = dateStr,
+                    city = city.name,
+                    country = city.country,
+                    method = method,
+                    school = school,
+                    latitudeAdjustmentMethod = highLatitudeRule
+                )
+
                 val pt = response.toPrayerTimes()
-                cachePrayerTimes(city, method, school, pt)
-                Result.success(pt)
+                cachePrayerTimes(settingsKey, date, pt)
+                Result.success(PrayerTimesWithSource(pt, Source.NETWORK))
             } catch (t: Throwable) {
-                val cached = getCachedPrayerTimes(city, method, school)
-                if (cached != null) Result.success(cached) else Result.failure(t)
+                val cached = getCachedPrayerTimes(key)
+                if (cached != null) Result.success(PrayerTimesWithSource(cached, Source.CACHE)) else Result.failure(t)
             }
         }
     }
@@ -57,8 +94,7 @@ class PrayerTimesRepository(private val context: Context) {
         val dateStr = data.date.gregorian.date // dd-MM-yyyy
         val date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
 
-        // Aladhan sometimes includes timezone suffix like "05:10 (UTC)" in other endpoints;
-        // timingsByCity typically provides HH:mm. We'll defensively strip after space.
+        // Defensively strip potential timezone suffix (e.g., "05:10 (UTC)").
         fun clean(time: String): String = time.split(" ").first()
 
         return PrayerTimes(
@@ -72,23 +108,66 @@ class PrayerTimesRepository(private val context: Context) {
         )
     }
 
-    private fun cachePrayerTimes(city: City, method: Int, school: Int, times: PrayerTimes) {
+    private fun cachePrayerTimes(settingsKey: String, date: LocalDate, times: PrayerTimes) {
+        // Invalidate previous day cache for same settings (city/method/madhab/highLat)
+        val lastDateKey = lastCachedDateKey(settingsKey)
+        val previousDateIso = prefs.getString(lastDateKey, null)
+
+        if (previousDateIso != null && previousDateIso != date.toString()) {
+            val previousDate = runCatching { LocalDate.parse(previousDateIso) }.getOrNull()
+            if (previousDate != null) {
+                val oldCacheKey = cacheKey(settingsKey, previousDate)
+                prefs.edit().remove(oldCacheKey).apply()
+            }
+        }
+
+        val key = cacheKey(settingsKey, date)
         prefs.edit()
-            .putString(cacheKey(city, method, school), gson.toJson(times))
+            .putString(key, gson.toJson(times))
+            .putString(lastDateKey, date.toString())
             .apply()
     }
 
-    private fun getCachedPrayerTimes(city: City, method: Int, school: Int): PrayerTimes? {
-        val json = prefs.getString(cacheKey(city, method, school), null) ?: return null
+    private fun getCachedPrayerTimes(cacheKey: String): PrayerTimes? {
+        val json = prefs.getString(cacheKey, null) ?: return null
         return runCatching { gson.fromJson(json, PrayerTimes::class.java) }.getOrNull()
     }
 
-    private fun cacheKey(city: City, method: Int, school: Int): String {
-        return "cache_prayer_times_${city.name}_${city.country}_m${method}_s${school}"
+    private fun lastCachedDateKey(settingsKey: String): String = "cache_prayer_times_v2_lastDate_$settingsKey"
+
+    private fun cacheKey(settingsKey: String, date: LocalDate): String = "cache_prayer_times_v2_${settingsKey}_d${date}"
+
+    private fun settingsKey(city: City, method: Int, school: Int, highLat: Int): String {
+        return "c${safeKey(city.name)}_${safeKey(city.country)}_m${method}_s${school}_lat${highLat}"
     }
 
-    fun currentSettings(): Triple<City, Int, Int> {
-        val appPrefs = AppPreferences(context)
-        return Triple(appPrefs.getSelectedCity(), appPrefs.getCalculationMethod(), appPrefs.getMadhabSchool())
+    private fun safeKey(value: String): String {
+        // SharedPreferences keys are strings; keep them deterministic and safe.
+        return value
+            .lowercase(Locale.US)
+            .replace(Regex("[^a-z0-9]+"), "_")
+            .trim('_')
     }
+
+    // PUBLIC_INTERFACE
+    /**
+     * Convenience helper to get the current prayer-times settings from preferences.
+     * Returns: City, method, madhab school, high-latitude rule.
+     */
+    fun currentSettings(): Settings {
+        val appPrefs = AppPreferences(context)
+        return Settings(
+            city = appPrefs.getSelectedCity(),
+            method = appPrefs.getCalculationMethod(),
+            school = appPrefs.getMadhabSchool(),
+            highLatitudeRule = appPrefs.getHighLatitudeRule()
+        )
+    }
+
+    data class Settings(
+        val city: City,
+        val method: Int,
+        val school: Int,
+        val highLatitudeRule: Int
+    )
 }

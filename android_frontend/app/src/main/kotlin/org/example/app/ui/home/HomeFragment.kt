@@ -6,11 +6,13 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.widget.CheckBox
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 import org.example.app.R
 import org.example.app.data.prefs.AppPreferences
@@ -65,6 +67,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             startActivity(Intent(requireContext(), QiblaActivity::class.java))
         }
 
+        val btnRetry = view.findViewById<MaterialButton>(R.id.btnRetryPrayerTimes)
+        btnRetry.setOnClickListener {
+            lifecycleScope.launch { refresh(adapter, userInitiated = true) }
+        }
+
         // Checklist bindings
         val cbFajr = view.findViewById<CheckBox>(R.id.cbFajr)
         val cbDhuhr = view.findViewById<CheckBox>(R.id.cbDhuhr)
@@ -98,7 +105,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         updateHeader()
 
         lifecycleScope.launch {
-            refresh(adapter)
+            refresh(adapter, userInitiated = false)
         }
 
         // Qibla preview setup
@@ -115,22 +122,62 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         })
     }
 
-    private suspend fun refresh(adapter: PrayerTimesAdapter) {
-        val status = requireView().findViewById<TextView>(R.id.tvStatus)
-        val (city, method, school) = prayerRepo.currentSettings()
+    private suspend fun refresh(adapter: PrayerTimesAdapter, userInitiated: Boolean) {
+        val root = requireView()
+        val status = root.findViewById<TextView>(R.id.tvStatus)
+        val loading = root.findViewById<ProgressBar>(R.id.pbPrayerTimes)
+        val error = root.findViewById<TextView>(R.id.tvPrayerTimesError)
+        val retry = root.findViewById<MaterialButton>(R.id.btnRetryPrayerTimes)
 
-        requireView().findViewById<TextView>(R.id.tvCity).text = "${city.name}, ${city.country} • method $method • madhab ${if (school == 1) "Hanafi" else "Shafi"}"
+        val settings = prayerRepo.currentSettings()
+        val date = LocalDate.now()
 
-        status.text = "Refreshing…"
-        val result = prayerRepo.getTodayPrayerTimes(city, method, school)
-        result.onSuccess { times ->
-            currentPrayerTimes = times
-            adapter.submit(times)
-            updateNextPrayer(times)
-            status.text = "Updated (offline fallback enabled)"
-            maybeScheduleNotifications(times)
+        val madhabLabel = if (settings.school == 1) "Hanafi" else "Shafi"
+        val highLatLabel = when (settings.highLatitudeRule) {
+            1 -> "MiddleOfNight"
+            2 -> "OneSeventh"
+            else -> "AngleBased"
+        }
+
+        root.findViewById<TextView>(R.id.tvCity).text =
+            "${settings.city.name}, ${settings.city.country} • method ${settings.method} • madhab $madhabLabel • $highLatLabel"
+
+        // Loading state
+        loading.visibility = View.VISIBLE
+        error.visibility = View.GONE
+        retry.visibility = View.GONE
+        status.text = if (userInitiated) getString(R.string.prayer_times_refreshing) else getString(R.string.prayer_times_loading)
+
+        val result = prayerRepo.getPrayerTimesForDate(
+            date = date,
+            city = settings.city,
+            method = settings.method,
+            school = settings.school,
+            highLatitudeRule = settings.highLatitudeRule
+        )
+
+        loading.visibility = View.GONE
+
+        result.onSuccess { withSource ->
+            currentPrayerTimes = withSource.times
+            adapter.submit(withSource.times)
+            updateNextPrayer(withSource.times)
+
+            error.visibility = View.GONE
+            retry.visibility = View.GONE
+
+            status.text = when (withSource.source) {
+                PrayerTimesRepository.Source.NETWORK -> getString(R.string.prayer_times_updated)
+                PrayerTimesRepository.Source.CACHE -> getString(R.string.prayer_times_offline_showing_saved)
+            }
+
+            maybeScheduleNotifications(withSource.times)
         }.onFailure {
-            status.text = "Failed to load (no cache available)."
+            // Total failure (no cache)
+            status.text = getString(R.string.prayer_times_failed_status)
+            error.text = getString(R.string.prayer_times_failed_body)
+            error.visibility = View.VISIBLE
+            retry.visibility = View.VISIBLE
         }
     }
 
@@ -165,11 +212,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onResume()
         uiHandler.post(clockRunnable)
         compassManager?.start()
-        // Refresh city/method changes immediately when coming back.
+        // Refresh city/method/high-lat changes immediately when coming back.
         lifecycleScope.launch {
             val rv = requireView().findViewById<RecyclerView>(R.id.rvPrayerTimes)
             val adapter = rv.adapter as? PrayerTimesAdapter ?: return@launch
-            refresh(adapter)
+            refresh(adapter, userInitiated = false)
         }
     }
 

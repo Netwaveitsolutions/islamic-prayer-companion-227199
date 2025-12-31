@@ -1,9 +1,10 @@
 package org.example.app.ui.settings
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.os.Handler
+import android.os.Looper
 import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +16,9 @@ class CityPickerActivity : AppCompatActivity() {
 
     private lateinit var prefs: AppPreferences
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var pendingFilter: Runnable? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = AppPreferences(this)
@@ -22,10 +26,19 @@ class CityPickerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_city_picker)
 
         val all = CityCatalog.cities()
-        val adapter = CityAdapter { city ->
+        val selected = prefs.getSelectedCity()
+
+        val tvSelection = findViewById<TextView>(R.id.tvSelectionSummary)
+        tvSelection.text = getString(R.string.city_picker_current_selection_value, selected.name, selected.country)
+
+        val tvEmpty = findViewById<TextView>(R.id.tvEmpty)
+
+        val adapter = CityAdapter { city: City ->
             prefs.setSelectedCity(city)
+            // Keep UX snappy: save and close immediately.
             finish()
         }
+        adapter.setSelectedCity(selected)
 
         val rv = findViewById<RecyclerView>(R.id.rvCities)
         rv.layoutManager = LinearLayoutManager(this)
@@ -33,15 +46,35 @@ class CityPickerActivity : AppCompatActivity() {
 
         adapter.submit(all)
 
-        val search = findViewById<EditText>(R.id.etSearch)
-        search.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val q = s?.toString()?.trim()?.lowercase().orEmpty()
-                if (q.isEmpty()) adapter.submit(all)
-                else adapter.submit(all.filter { it.name.lowercase().contains(q) || it.country.lowercase().contains(q) })
+        fun applyFilter(queryRaw: String) {
+            val q = queryRaw.trim()
+            adapter.setQuery(q)
+
+            val filtered = if (q.isEmpty()) {
+                all
+            } else {
+                val qLower = q.lowercase()
+                all.filter {
+                    it.name.lowercase().contains(qLower) || it.country.lowercase().contains(qLower)
+                }
             }
-            override fun afterTextChanged(s: Editable?) = Unit
+
+            adapter.submit(filtered)
+            tvEmpty.visibility = if (filtered.isEmpty()) TextView.VISIBLE else TextView.GONE
+        }
+
+        val search = findViewById<EditText>(R.id.etSearch)
+        search.addTextChangedListener(SimpleTextWatcher { text ->
+            // Debounce to avoid jank on large lists.
+            pendingFilter?.let { handler.removeCallbacks(it) }
+            pendingFilter = Runnable { applyFilter(text) }.also {
+                handler.postDelayed(it, 250L)
+            }
         })
+    }
+
+    override fun onDestroy() {
+        pendingFilter?.let { handler.removeCallbacks(it) }
+        super.onDestroy()
     }
 }

@@ -56,6 +56,34 @@
                     android:text="Next: —"
                     android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body" />
 
+                <ProgressBar
+                    android:id="@+id/pbPrayerTimes"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/tvPrayerTimesError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/ocean_error"
+                    android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body"
+                    android:visibility="gone"
+                    android:text="@string/prayer_times_failed_body"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRetryPrayerTimes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/retry"
+                    android:visibility="gone"
+                    app:backgroundTint="@color/ocean_primary"/>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvPrayerTimes"
                     android:layout_width="match_parent"
@@ -173,6 +201,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text=""
+            android:textColor="@color/ocean_text_muted"
             android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body" />
 
     </LinearLayout>

@@ -48,6 +48,12 @@ class AppPreferences(context: Context) {
         return prefs.getString(PREF_MADHAB, "0")?.toIntOrNull() ?: 0
     }
 
+    fun getHighLatitudeRule(): Int {
+        // Aladhan latitudeAdjustmentMethod:
+        // 1 = Middle of the Night, 2 = One Seventh, 3 = Angle Based
+        return prefs.getString(PREF_HIGH_LAT_RULE, "3")?.toIntOrNull() ?: 3
+    }
+
     fun notificationsEnabled(): Boolean = prefs.getBoolean(PREF_NOTIFICATIONS_ENABLED, false)
 
     fun notifyBeforeMinutes(): Int = prefs.getString(PREF_NOTIFY_BEFORE, "10")?.toIntOrNull() ?: 10
@@ -93,6 +99,7 @@ class AppPreferences(context: Context) {
         // Preference screen keys (must match res/xml/preferences.xml)
         const val PREF_CALC_METHOD = "pref_calc_method"
         const val PREF_MADHAB = "pref_madhab"
+        const val PREF_HIGH_LAT_RULE = "pref_high_lat_rule"
         const val PREF_NOTIFICATIONS_ENABLED = "pref_notifications_enabled"
         const val PREF_NOTIFY_BEFORE = "pref_notify_before"
         const val PREF_THEME_MODE = "pref_theme_mode"
