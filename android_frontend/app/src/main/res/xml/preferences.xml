@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Prayer Times">
+        <Preference
+            app:key="pref_city_picker"
+            app:title="City"
+            app:summary="Choose your city for prayer times" />
+
+        <ListPreference
+            app:key="pref_calc_method"
+            app:title="Calculation method"
+            app:entries="@array/calc_method_entries"
+            app:entryValues="@array/calc_method_values"
+            app:defaultValue="2" />
+
+        <ListPreference
+            app:key="pref_madhab"
+            app:title="Madhab"
+            app:entries="@array/madhab_entries"
+            app:entryValues="@array/madhab_values"
+            app:defaultValue="0" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Notifications">
+        <SwitchPreferenceCompat
+            app:key="pref_notifications_enabled"
+            app:title="Prayer notifications"
+            app:defaultValue="false" />
+
+        <ListPreference
+            app:key="pref_notify_before"
+            app:title="Notify before"
+            app:entries="@array/notify_before_entries"
+            app:entryValues="@array/notify_before_values"
+            app:defaultValue="10"
+            app:dependency="pref_notifications_enabled" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Appearance">
+        <ListPreference
+            app:key="pref_theme_mode"
+            app:title="Theme"
+            app:entries="@array/theme_entries"
+            app:entryValues="@array/theme_values"
+            app:defaultValue="system" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

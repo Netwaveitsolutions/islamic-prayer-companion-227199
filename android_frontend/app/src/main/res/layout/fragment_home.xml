@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ocean_background"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Today"
+            android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Title"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="City"
+            android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prayer_times"
+                    android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvNextPrayer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Next: —"
+                    android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPrayerTimes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/salah_checklist"
+                    android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Title"
+                    android:textStyle="bold" />
+
+                <CheckBox
+                    android:id="@+id/cbFajr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Fajr" />
+
+                <CheckBox
+                    android:id="@+id/cbDhuhr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dhuhr" />
+
+                <CheckBox
+                    android:id="@+id/cbAsr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Asr" />
+
+                <CheckBox
+                    android:id="@+id/cbMaghrib"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Maghrib" />
+
+                <CheckBox
+                    android:id="@+id/cbIsha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Isha" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/view_history"
+                    app:backgroundTint="@color/ocean_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/qibla_compass"
+                    android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Title"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvQiblaAngle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Qibla: —"
+                    android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body" />
+
+                <org.example.app.qibla.ui.QiblaCompassView
+                    android:id="@+id/qiblaPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="10dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOpenQibla"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/open_qibla" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text=""
+            android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

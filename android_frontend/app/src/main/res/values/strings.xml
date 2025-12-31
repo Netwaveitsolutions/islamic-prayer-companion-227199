@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Islamic Prayer Companion</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_learn">Learn</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="onboarding_title">Welcome</string>
+    <string name="onboarding_subtitle">Track your Salah, learn with audio, and find the Qibla with a smooth compass.</string>
+    <string name="get_started">Get started</string>
+
+    <string name="today">Today</string>
+    <string name="prayer_times">Prayer times</string>
+    <string name="salah_checklist">Salah checklist</string>
+    <string name="view_history">View history</string>
+    <string name="qibla_compass">Qibla compass</string>
+    <string name="open_qibla">Open Qibla</string>
+
+    <string name="settings_city">City</string>
+    <string name="settings_calc_method">Calculation method</string>
+    <string name="settings_madhab">Madhab</string>
+    <string name="settings_notifications">Prayer notifications</string>
+    <string name="settings_theme">Theme</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="continue_guest">Continue as guest</string>
+    <string name="sign_out">Sign out</string>
+
+    <string name="learn_tutorial">Tutorial</string>
+    <string name="learn_tatweej">Tatweej</string>
+</resources>
