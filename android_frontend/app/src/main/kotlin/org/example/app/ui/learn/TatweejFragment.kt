@@ -1,7 +1,7 @@
 package org.example.app.ui.learn
 
-import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -12,17 +12,21 @@ import org.example.app.learn.TatweejWord
 
 class TatweejFragment : Fragment(R.layout.fragment_tatweej) {
 
-    private var mediaPlayer: MediaPlayer? = null
-    private var playingIndex: Int? = null
+    private var audioPlayer: TatweejAudioPlayer? = null
 
     private lateinit var wordsAdapter: TatweejWordsAdapter
+    private var words: List<TatweejWord> = emptyList()
+
+    // Fragment-level debounce (extra protection if the RecyclerView dispatches rapidly).
+    private var lastTapUptimeMs: Long = 0L
+    private val tapDebounceMs: Long = 160L
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val rv = view.findViewById<RecyclerView>(R.id.rvWords)
         val tvNowPlaying = view.findViewById<TextView>(R.id.tvNowPlaying)
 
-        val words = listOf(
-            // Bundled real audio from Wikimedia Commons in res/raw.
+        words = listOf(
+            // Bundled real audio in res/raw (short clips).
             TatweejWord(display = "بِسْمِ الله", transliteration = "Bismillah", audioRes = R.raw.bismillah_ar),
             TatweejWord(display = "الله", transliteration = "Allah", audioRes = R.raw.allah_ar),
             TatweejWord(display = "السلام عليكم", transliteration = "As-salamu alaykum", audioRes = R.raw.assalamu_alaykum_ar),
@@ -31,41 +35,48 @@ class TatweejFragment : Fragment(R.layout.fragment_tatweej) {
 
         wordsAdapter = TatweejWordsAdapter(
             onClick = { index, word ->
-                play(index, word, tvNowPlaying)
+                val now = SystemClock.uptimeMillis()
+                if (now - lastTapUptimeMs < tapDebounceMs) return@TatweejWordsAdapter
+                lastTapUptimeMs = now
+
+                // Seek-to-word + interruption is handled by TatweejAudioPlayer.
+                audioPlayer?.onWordTapped(index, word)
             }
         )
 
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.adapter = wordsAdapter
+        rv.itemAnimator?.changeDuration = 120L
         wordsAdapter.submit(words)
-    }
 
-    private fun play(index: Int, word: TatweejWord, tvNowPlaying: TextView) {
-        stopPlayback()
+        // Create once (appContext avoids leaking the fragment/activity).
+        audioPlayer = TatweejAudioPlayer(requireContext().applicationContext).apply {
+            setOnStateListener { state ->
+                wordsAdapter.setPlayingIndex(state.playingIndex)
 
-        playingIndex = index
-        wordsAdapter.setPlayingIndex(index)
-        tvNowPlaying.text = "Now playing: ${word.transliteration}"
-
-        mediaPlayer = MediaPlayer.create(requireContext(), word.audioRes).apply {
-            setOnCompletionListener {
-                playingIndex = null
-                wordsAdapter.setPlayingIndex(null)
-                tvNowPlaying.text = ""
-                stopPlayback()
+                val idx = state.playingIndex
+                if (idx == null) {
+                    tvNowPlaying.text = ""
+                } else {
+                    val label = words.getOrNull(idx)?.transliteration ?: ""
+                    tvNowPlaying.text = getString(R.string.tatweej_now_playing, label)
+                }
             }
-            start()
+
+            // Warm-up to reduce first-tap latency.
+            preload(words)
         }
     }
 
-    private fun stopPlayback() {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+    override fun onStop() {
+        super.onStop()
+        // Stop when leaving screen to avoid audio continuing in background.
+        audioPlayer?.stop()
     }
 
-    override fun onPause() {
-        super.onPause()
-        stopPlayback()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        audioPlayer?.release()
+        audioPlayer = null
     }
 }

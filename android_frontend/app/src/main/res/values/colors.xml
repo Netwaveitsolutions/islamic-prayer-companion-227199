@@ -22,4 +22,8 @@
     <!-- Dividers / outlines -->
     <color name="divider_soft">#E5E7EB</color>
     <color name="outline_soft">#D1D5DB</color>
+
+    <!-- Tatweej (soft selection/highlight tints) -->
+    <color name="ocean_primary_soft">#1A2563EB</color> <!-- 10% primary -->
+    <color name="ocean_secondary_soft">#1AF59E0B</color> <!-- 10% secondary -->
 </resources>

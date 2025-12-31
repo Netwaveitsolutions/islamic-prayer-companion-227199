@@ -31,6 +31,11 @@
     <string name="learn_tutorial">Tutorial</string>
     <string name="learn_tatweej">Tatweej</string>
 
+    <!-- Tatweej -->
+    <string name="tatweej_title">Tatweej</string>
+    <string name="tatweej_subtitle">Tap a word to hear the real (bundled) pronunciation. Tap another word to switch instantly.</string>
+    <string name="tatweej_now_playing">Now playing: %1$s</string>
+
     <string name="retry">Retry</string>
 
     <string name="prayer_times_loading">Loading prayer times…</string>

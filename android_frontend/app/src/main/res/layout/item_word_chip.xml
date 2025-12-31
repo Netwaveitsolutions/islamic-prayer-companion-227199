@@ -2,20 +2,55 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardWord"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
-    app:cardCornerRadius="16dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/tatweej_chip_background"
+    app:cardCornerRadius="18dp"
     app:cardElevation="1dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/divider_soft">
+    app:strokeColor="@color/tatweej_chip_stroke"
+    app:strokeWidth="1dp">
 
-    <TextView
-        android:id="@+id/tvWord"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="14dp"
-        android:text="Allah"
-        android:textSize="18sp"
-        android:textColor="@color/ocean_text" />
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <TextView
+            android:id="@+id/tvArabic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="بِسْمِ الله"
+            android:textColor="@color/ocean_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvTransliteration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Bismillah"
+            android:textAppearance="@style/TextAppearance.IslamicPrayerCompanion.Body"
+            android:textColor="@color/ocean_text_muted" />
+
+        <TextView
+            android:id="@+id/tvPlayingBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/ocean_secondary_soft"
+            android:paddingLeft="10dp"
+            android:paddingTop="4dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="4dp"
+            android:text="Playing"
+            android:textColor="@color/ocean_text"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -32,6 +32,10 @@ androidApplication {
         // Google Sign-In
         implementation("com.google.android.gms:play-services-auth:21.2.0")
 
+        // Media (Tatweej): ExoPlayer for smooth, reusable playback and fast clip switching
+        implementation("androidx.media3:media3-exoplayer:1.4.1")
+        implementation("androidx.media3:media3-datasource:1.4.1")
+
         // Unit tests: ensure tests are discoverable by the default test runner (JUnit4)
         implementation("junit:junit:4.13.2")
     }
