@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
 import org.example.app.R
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -66,6 +67,15 @@ class QiblaCompassView @JvmOverloads constructor(
 
     private fun invalidateSmooth() {
         val target = normalize((qiblaBearingDeg - deviceAzimuthDeg).toFloat())
+
+        // If the change is tiny, avoid restarting animations; just draw.
+        val delta = shortestDelta(renderRelativeDeg, target)
+        if (abs(delta) < 0.6f) {
+            renderRelativeDeg = target
+            invalidate()
+            return
+        }
+
         animateTo(target)
     }
 
@@ -76,7 +86,7 @@ class QiblaCompassView @JvmOverloads constructor(
 
         animator?.cancel()
         animator = ValueAnimator.ofFloat(current, end).apply {
-            duration = 120
+            duration = 140
             addUpdateListener {
                 renderRelativeDeg = normalize((it.animatedValue as Float))
                 invalidate()
