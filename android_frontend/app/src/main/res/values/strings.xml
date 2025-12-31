@@ -50,4 +50,6 @@
     <string name="city_picker_current_selection_value">Current selection: %1$s, %2$s</string>
     <string name="city_picker_empty">No matches. Try a different spelling.</string>
     <string name="selected">Selected</string>
+
+    <string name="notifications_permission_denied">Notifications permission not granted.</string>
 </resources>

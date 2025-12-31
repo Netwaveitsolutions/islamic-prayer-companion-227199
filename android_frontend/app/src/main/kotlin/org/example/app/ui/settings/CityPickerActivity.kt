@@ -1,5 +1,6 @@
 package org.example.app.ui.settings
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.example.app.R
 import org.example.app.data.prefs.AppPreferences
 import org.example.app.domain.City
+import org.example.app.prayer.notifications.NotificationRescheduleReceiver
 
 class CityPickerActivity : AppCompatActivity() {
 
@@ -35,6 +37,16 @@ class CityPickerActivity : AppCompatActivity() {
 
         val adapter = CityAdapter { city: City ->
             prefs.setSelectedCity(city)
+
+            // If notifications are enabled, trigger an immediate reschedule via our receiver.
+            // This avoids needing coroutines here (keeps compilation/tooling simpler).
+            if (prefs.notificationsEnabled()) {
+                val rescheduleIntent = Intent(this, NotificationRescheduleReceiver::class.java).apply {
+                    action = NotificationRescheduleReceiver.ACTION_RESCHEDULE
+                }
+                sendBroadcast(rescheduleIntent)
+            }
+
             // Keep UX snappy: save and close immediately.
             finish()
         }

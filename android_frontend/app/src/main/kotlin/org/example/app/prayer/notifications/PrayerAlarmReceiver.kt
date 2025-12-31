@@ -1,6 +1,7 @@
 package org.example.app.prayer.notifications
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -10,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import org.example.app.R
+import org.example.app.ui.MainActivity
 
 class PrayerAlarmReceiver : BroadcastReceiver() {
 
@@ -19,17 +21,8 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "Prayer"
         val prayerTime = intent.getStringExtra(EXTRA_PRAYER_TIME) ?: ""
 
+        // Always ensure channel exists before posting.
         NotificationChannels.ensureCreated(context)
-
-        val notification = NotificationCompat.Builder(context, NotificationChannels.CHANNEL_PRAYER_REMINDERS)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Upcoming prayer: $prayerName")
-            .setContentText(if (prayerTime.isNotBlank()) "Time: $prayerTime" else "It's almost time.")
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        val id = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
         // Android 13+ requires POST_NOTIFICATIONS runtime permission.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -37,6 +30,28 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 PackageManager.PERMISSION_GRANTED
             if (!granted) return
         }
+
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, NotificationChannels.CHANNEL_PRAYER_REMINDERS)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Upcoming prayer: $prayerName")
+            .setContentText(if (prayerTime.isNotBlank()) "Time: $prayerTime" else "It's almost time.")
+            .setContentIntent(contentPendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        // Stable-ish id per prayer so updates replace rather than spam (good for reliability).
+        val id = prayerName.hashCode()
 
         try {
             NotificationManagerCompat.from(context).notify(id, notification)

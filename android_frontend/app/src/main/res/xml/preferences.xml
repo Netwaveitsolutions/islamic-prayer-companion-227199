@@ -33,6 +33,7 @@
         <SwitchPreferenceCompat
             app:key="pref_notifications_enabled"
             app:title="Prayer notifications"
+            app:summary="Get reminders before each prayer"
             app:defaultValue="false" />
 
         <ListPreference
@@ -41,6 +42,19 @@
             app:entries="@array/notify_before_entries"
             app:entryValues="@array/notify_before_values"
             app:defaultValue="10"
+            app:dependency="pref_notifications_enabled" />
+
+        <Preference
+            app:key="pref_notifications_next_scheduled"
+            app:title="Next scheduled notification"
+            app:summary="—"
+            app:selectable="false"
+            app:dependency="pref_notifications_enabled" />
+
+        <Preference
+            app:key="pref_notifications_exact_alarm"
+            app:title="Exact alarms (best effort)"
+            app:summary="Manage system permission for more reliable reminders"
             app:dependency="pref_notifications_enabled" />
     </PreferenceCategory>
 
